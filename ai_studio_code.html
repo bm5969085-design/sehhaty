@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نبض | الحاسبة الطبية والحيوية المتقدمة</title>
+  
+  <!-- خط Cairo الأنيق من Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome للأيقونات -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS عبر CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    /* تحسين شكل الـ Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+  </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+          <i class="fa-solid fa-heart-pulse text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">صِحَّتِي <span class="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300">النسخة الذكية</span></h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">الحاسبة الطبية والحيوية المتقدمة</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- زر التبديل بين الوضع الليلي والنهاري -->
+        <button id="themeToggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+          <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- تبويبات التنقل السريعة (Tabs) -->
+    <div class="flex p-1.5 bg-slate-200/80 dark:bg-slate-900 rounded-2xl max-w-lg mx-auto shadow-inner">
+      <button onclick="switchTab('bmi')" id="tab-btn-bmi" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center gap-2 bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm">
+        <i class="fa-solid fa-weight-scale"></i> كتلة الجسم (BMI)
+      </button>
+      <button onclick="switchTab('pediatric')" id="tab-btn-pediatric" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 rounded-xl transition flex items-center justify-center gap-2 hover:text-slate-900 dark:hover:text-white">
+        <i class="fa-solid fa-baby"></i> جرعات الأطفال
+      </button>
+      <button onclick="switchTab('vitals')" id="tab-btn-vitals" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 rounded-xl transition flex items-center justify-center gap-2 hover:text-slate-900 dark:hover:text-white">
+        <i class="fa-solid fa-stethoscope"></i> العلامات الحيوية
+      </button>
+    </div>
+
+    <!-- 1. قسم حساب مؤشر كتلة الجسم (BMI Section) -->
+    <section id="section-bmi" class="tab-content transition-all duration-300">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- نموذج الإدخال -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+              <i class="fa-solid fa-calculator"></i>
+            </span>
+            بيانات القياس
+          </h2>
+
+          <form id="bmiForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">الوزن الحالي (كجم)</label>
+              <div class="relative">
+                <input type="number" id="bmiWeight" step="0.1" required placeholder="مثال: 72.5" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-teal-500 outline-none transition text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-sm">kg</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">الطول (سم)</label>
+              <div class="relative">
+                <input type="number" id="bmiHeight" step="1" required placeholder="مثال: 175" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-teal-500 outline-none transition text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-sm">cm</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">الجنس</label>
+                <select id="bmiGender" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-teal-500 outline-none">
+                  <option value="male">ذكر</option>
+                  <option value="female">أنثى</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">العمر (سنوات)</label>
+                <input type="number" id="bmiAge" value="28" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-teal-500 outline-none text-left" dir="ltr">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold shadow-md shadow-teal-500/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-chart-pie"></i> احسب مؤشر الكتلة
+            </button>
+          </form>
+        </div>
+
+        <!-- نتيجة الحساب والنصائح الطبية -->
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">تحليل الحالة الصحية</h3>
+            
+            <div id="bmiEmptyState" class="text-center py-12">
+              <i class="fa-solid fa-arrows-down-to-people text-5xl text-slate-300 dark:text-slate-700 mb-3"></i>
+              <p class="text-slate-500 dark:text-slate-400">أدخل الوزن والطول واضغط "احسب" لعرض تقريرك الصحي المفصل.</p>
+            </div>
+
+            <div id="bmiResultBox" class="hidden space-y-5">
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+                <div>
+                  <span class="text-xs text-slate-500 dark:text-slate-400 block mb-0.5">مؤشر كتلة جسمك (BMI)</span>
+                  <div class="flex items-baseline gap-2">
+                    <span id="bmiScore" class="text-4xl font-black text-slate-900 dark:text-white">--</span>
+                    <span id="bmiBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-700">مثالي</span>
+                  </div>
+                </div>
+                <div class="text-left">
+                  <span class="text-xs text-slate-500 dark:text-slate-400 block">الوزن المثالي التقديري</span>
+                  <span id="bmiIdealWeight" class="text-sm font-bold text-teal-600 dark:text-teal-400">-- كجم</span>
+                </div>
+              </div>
+
+              <!-- شريط القياس المرئي -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-semibold text-slate-500">
+                  <span>نحافة (&lt;18.5)</span>
+                  <span>مثالي (18.5-24.9)</span>
+                  <span>زيادة (25-29.9)</span>
+                  <span>سمنة (&ge;30)</span>
+                </div>
+                <div class="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                  <div class="w-1/4 bg-sky-400 h-full"></div>
+                  <div class="w-1/4 bg-emerald-500 h-full"></div>
+                  <div class="w-1/4 bg-amber-400 h-full"></div>
+                  <div class="w-1/4 bg-rose-500 h-full"></div>
+                </div>
+              </div>
+
+              <!-- نصائح طبية ذكية -->
+              <div class="p-4 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50">
+                <h4 class="text-sm font-bold text-teal-900 dark:text-teal-300 flex items-center gap-2 mb-1">
+                  <i class="fa-solid fa-notes-medical"></i> التوصية الطبية والغذائية:
+                </h4>
+                <p id="bmiAdvice" class="text-sm text-teal-800/90 dark:text-teal-200/80 leading-relaxed">
+                  --
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-400 dark:text-slate-500 mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+            * ملاحظة: مؤشر كتلة الجسم هو مؤشر استرشادي عام ولا يفرق دائماً بين الكتلة العضلية وكتلة الدهون.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. قسم حساب جرعات الأدوية للأطفال (Pediatric Dosage) -->
+    <section id="section-pediatric" class="tab-content hidden transition-all duration-300">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <i class="fa-solid fa-syringe"></i>
+            </span>
+            <h2 class="text-lg font-bold">حاسبة خافض الحرارة والمسكن</h2>
+          </div>
+
+          <form id="pediatricForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">وزن الطفل بدقة (كجم)</label>
+              <div class="relative">
+                <input type="number" id="childWeight" step="0.5" required placeholder="مثال: 12" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-indigo-500 outline-none text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-sm">kg</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">المادة الفعالة</label>
+              <select id="medType" onchange="updateMedConcentrations()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="paracetamol">باراسيتامول (Paracetamol) - الأكثر أماناً</option>
+                <option value="ibuprofen">إيبوبروفين (Ibuprofen) - لعمر فوق 6 أشهر</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">التركيز المكتوب على العبوة</label>
+              <select id="medConcentration" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <!-- يُملأ ديناميكياً بواسطة JavaScript -->
+              </select>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold shadow-md shadow-indigo-500/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-prescription-bottle-medical"></i> احسب الجرعة الدقيقة
+            </button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          <div id="doseEmptyState" class="text-center py-16">
+            <i class="fa-solid fa-prescription-bottle text-5xl text-slate-300 dark:text-slate-700 mb-3"></i>
+            <p class="text-slate-500 dark:text-slate-400">أدخل وزن الطفل ونوع الدواء لحساب الجرعة الآمنة بالميللي لتر (ml).</p>
+          </div>
+
+          <div id="doseResultBox" class="hidden space-y-4">
+            <div class="p-5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60">
+              <span class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide">الجرعة الموصى بها في المرة الواحدة</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="calculatedMl" class="text-5xl font-black text-indigo-600 dark:text-indigo-400">0.0</span>
+                <span class="text-xl font-bold text-slate-700 dark:text-slate-200">مل (ml) بالسرنجة</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">تعادل تقريباً: <span id="calculatedMg" class="font-bold text-slate-700 dark:text-slate-300">0</span> مجم من المادة الفعالة.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
+                  <i class="fa-regular fa-clock text-indigo-500"></i> التكرار الزمني
+                </div>
+                <p id="doseInterval" class="text-slate-600 dark:text-slate-400 text-xs">كل 4 إلى 6 ساعات عند اللزوم.</p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> الحد الأقصى اليومي
+                </div>
+                <p id="doseMaxDaily" class="text-slate-600 dark:text-slate-400 text-xs">لا تتجاوز 4 جرعات خلال 24 ساعة.</p>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
+              <i class="fa-solid fa-circle-exclamation mt-0.5 text-sm"></i>
+              <div>
+                <strong>تنبيه طبي صارم:</strong> استخدم دائماً سرنجة القياس المرقمة وليس ملاعق المطبخ العادية. في حال استمرار الحرارة أكثر من 3 أيام يجب مراجعة طبيب الأطفال فوراً.
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-400 dark:text-slate-500 mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+            * الحسابات تستند للمعايير العالمية لطب الأطفال (باراسيتامول: 15 مجم/كجم، إيبوبروفين: 10 مجم/كجم).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. قسم متابعة العلامات الحيوية (Vitals Tracker + LocalStorage) -->
+    <section id="section-vitals" class="tab-content hidden transition-all duration-300">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- نموذج إضافة قراءة جديدة -->
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <i class="fa-solid fa-heart-pulse"></i>
+            </span>
+            <h2 class="text-lg font-bold">تسجيل قراءة حيوية</h2>
+          </div>
+
+          <form id="vitalsForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">ضغط الدم الانقباضي (SYS)</label>
+              <div class="relative">
+                <input type="number" id="sysInput" required min="50" max="250" placeholder="العالي (مثال: 120)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-rose-500 outline-none text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-xs">mmHg</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">ضغط الدم الانبساطي (DIA)</label>
+              <div class="relative">
+                <input type="number" id="diaInput" required min="30" max="160" placeholder="المنخفض (مثال: 80)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-rose-500 outline-none text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-xs">mmHg</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">معدل النبض (Pulse)</label>
+              <div class="relative">
+                <input type="number" id="pulseInput" required min="30" max="220" placeholder="نبضة/دقيقة (مثال: 72)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-rose-500 outline-none text-left" dir="ltr">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-xs">BPM</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">ملاحظة سريعة</label>
+              <input type="text" id="vitalsNote" placeholder="مثلاً: بعد الراحة بـ 10 دقائق" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:ring-2 focus:ring-rose-500 outline-none text-sm">
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold shadow-md shadow-rose-500/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> حفظ القراءة في السجل
+            </button>
+          </form>
+        </div>
+
+        <!-- السجل التاريخي المحفوظ -->
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-bold">سجل القراءات التاريخي</h3>
+              <p class="text-xs text-slate-400">محفوظة تلقائياً على جهازك عبر المتصفح</p>
+            </div>
+            <button onclick="clearAllVitals()" id="clearAllBtn" class="text-xs text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 flex items-center gap-1 font-semibold transition hidden">
+              <i class="fa-solid fa-trash-can"></i> مسح السجل كاملاً
+            </button>
+          </div>
+
+          <!-- قائمة السجلات -->
+          <div id="vitalsListContainer" class="flex-1 overflow-y-auto max-h-[420px] space-y-3 pr-1">
+            <!-- يُملأ ديناميكياً بواسطة JavaScript -->
+          </div>
+
+          <!-- حالة الفراغ -->
+          <div id="vitalsEmptyState" class="text-center py-16 hidden">
+            <i class="fa-solid fa-notes-medical text-4xl text-slate-300 dark:text-slate-700 mb-2"></i>
+            <p class="text-sm text-slate-500 dark:text-slate-400">لا توجد قراءات محفوظة حتى الآن. أضف قراءتك الأولى!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- تذييل الصفحة -->
+  <footer class="mt-12 py-6 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-500">
+    تطبيق "صِحَّتِي" للأغراض التوعوية والاسترشادية فقط ولا يغني عن استشارة الطبيب المختص أو الصيدلي.
+  </footer>
+
+  <!-- كود الجافاسكريبت التفاعلي المنظم بالكامل -->
+  <script>
+    /* ========================================================
+       1. إدارة المظهر الداكن / الفاتح (Dark Mode Toggle)
+       ======================================================== */
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.className = 'fa-solid fa-sun text-amber-400';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.className = 'fa-solid fa-moon text-slate-600';
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // التحقق من الإعدادات المحفوظة أو تفضيلات النظام
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      applyTheme(!isCurrentlyDark);
+    });
+
+    /* ========================================================
+       2. إدارة التبويبات (Tabs Navigation)
+       ======================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-teal-600', 'dark:text-teal-400', 'shadow-sm');
+        btn.classList.add('text-slate-600', 'dark:text-slate-400');
+      });
+
+      const selectedTab = document.getElementById(`section-${tabId}`);
+      const selectedBtn = document.getElementById(`tab-btn-${tabId}`);
+
+      if (selectedTab && selectedBtn) {
+        selectedTab.classList.remove('hidden');
+        selectedBtn.classList.remove('text-slate-600', 'dark:text-slate-400');
+        selectedBtn.classList.add('bg-white', 'dark:bg-slate-800', 'text-teal-600', 'dark:text-teal-400', 'shadow-sm');
+      }
+    }
+
+    /* ========================================================
+       3. حساب مؤشر كتلة الجسم (BMI Logic)
+       ======================================================== */
+    const bmiForm = document.getElementById('bmiForm');
+    const bmiEmptyState = document.getElementById('bmiEmptyState');
+    const bmiResultBox = document.getElementById('bmiResultBox');
+    const bmiScore = document.getElementById('bmiScore');
+    const bmiBadge = document.getElementById('bmiBadge');
+    const bmiIdealWeight = document.getElementById('bmiIdealWeight');
+    const bmiAdvice = document.getElementById('bmiAdvice');
+
+    bmiForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const weight = parseFloat(document.getElementById('bmiWeight').value);
+      const heightCm = parseFloat(document.getElementById('bmiHeight').value);
+
+      if (!weight || !heightCm) return;
+
+      const heightM = heightCm / 100;
+      const bmi = (weight / (heightM * heightM)).toFixed(1);
+
+      // حساب الوزن المثالي التقديري (BMI: 18.5 - 24.9)
+      const minIdeal = (18.5 * heightM * heightM).toFixed(1);
+      const maxIdeal = (24.9 * heightM * heightM).toFixed(1);
+
+      let category = '';
+      let badgeClass = '';
+      let advice = '';
+
+      if (bmi < 18.5) {
+        category = 'نقص في الوزن (نحافة)';
+        badgeClass = 'bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300';
+        advice = 'يُنصح بزيادة السعرات الحرارية الصحية وتناول أطعمة غنية بالعناصر المغذية والبروتينات وممارسة تمارين المقاومة لزيادة الكتلة العضلية.';
+      } else if (bmi >= 18.5 && bmi <= 24.9) {
+        category = 'وزن مثالي وطبيعي';
+        badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+        advice = 'ممتاز! وزنك يقع ضمن النطاق الصحي الطبيعي. حافظ على نظامك الغذائي المتوازن ونشاطك البدني اليومي للحفاظ على صحة القلب والأوعية.';
+      } else if (bmi >= 25 && bmi <= 29.9) {
+        category = 'زيادة في الوزن';
+        badgeClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+        advice = 'أنت أعلى بقليل من المعدل المثالي. ينصح ببدء تقليل السكريات والمأكولات المصنعة مع ممارسة المشي السريع 30 دقيقة يومياً لتفادي السمنة.';
+      } else {
+        category = 'سمنة (تحتاج متابعة)';
+        badgeClass = 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300';
+        advice = 'يُوصى بمراجعة طبيب أو اختصاصي تغذية لوضع خطة صحية متوازنة لإنقاص الوزن، لتقليل عوامل الخطر المرتبطة بضغط الدم ومستويات السكر.';
+      }
+
+      bmiScore.textContent = bmi;
+      bmiBadge.textContent = category;
+      bmiBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${badgeClass}`;
+      bmiIdealWeight.textContent = `${minIdeal} - ${maxIdeal} كجم`;
+      bmiAdvice.textContent = advice;
+
+      bmiEmptyState.classList.add('hidden');
+      bmiResultBox.classList.remove('hidden');
+    });
+
+    /* ========================================================
+       4. حاسبة جرعات الأطفال (Pediatric Dosage Logic)
+       ======================================================== */
+    const medTypeSelect = document.getElementById('medType');
+    const medConcentrationSelect = document.getElementById('medConcentration');
+    const pediatricForm = document.getElementById('pediatricForm');
+    const doseEmptyState = document.getElementById('doseEmptyState');
+    const doseResultBox = document.getElementById('doseResultBox');
+
+    // التركيزات الشهيرة المتوفرة في الصيدليات
+    const medicineDatabase = {
+      paracetamol: [
+        { label: 'شراب عادي (120 مجم / 5 مل) - مثل سيتال/تمبرا', mg: 120, ml: 5, rate: 15 },
+        { label: 'شراب مركز (250 مجم / 5 مل) - فورت', mg: 250, ml: 5, rate: 15 },
+        { label: 'نقط للرضع (100 مجم / 1 مل)', mg: 100, ml: 1, rate: 15 }
+      ],
+      ibuprofen: [
+        { label: 'شراب أطفال (100 مجم / 5 مل) - بروفين أطفال', mg: 100, ml: 5, rate: 10 },
+        { label: 'شراب أطفال فورت (200 مجم / 5 مل)', mg: 200, ml: 5, rate: 10 }
+      ]
+    };
+
+    function updateMedConcentrations() {
+      const med = medTypeSelect.value;
+      const options = medicineDatabase[med];
+      medConcentrationSelect.innerHTML = '';
+      options.forEach((opt, idx) => {
+        const optionElem = document.createElement('option');
+        optionElem.value = idx;
+        optionElem.textContent = opt.label;
+        medConcentrationSelect.appendChild(optionElem);
+      });
+    }
+
+    // التهيئة الأولى للتركيزات
+    updateMedConcentrations();
+
+    pediatricForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const weight = parseFloat(document.getElementById('childWeight').value);
+      const medKey = medTypeSelect.value;
+      const selectedIndex = parseInt(medConcentrationSelect.value);
+      const medData = medicineDatabase[medKey][selectedIndex];
+
+      if (!weight || weight <= 0) return;
+
+      // الحساب: الجرعة بالمجم = الوزن * الجرعة القياسية لكل كجم
+      const doseMg = weight * medData.rate;
+      // الجرعة بالمل = (الجرعة المطلوبة بالمجم / تركيز المجم) * مل المحلول
+      const doseMl = ((doseMg / medData.mg) * medData.ml).toFixed(1);
+
+      document.getElementById('calculatedMl').textContent = doseMl;
+      document.getElementById('calculatedMg').textContent = Math.round(doseMg);
+
+      const intervalElem = document.getElementById('doseInterval');
+      const maxDailyElem = document.getElementById('doseMaxDaily');
+
+      if (medKey === 'paracetamol') {
+        intervalElem.textContent = 'كل 4 إلى 6 ساعات عند اللزوم.';
+        maxDailyElem.textContent = 'بحد أقصى 4 إلى 5 جرعات خلال 24 ساعة.';
+      } else {
+        intervalElem.textContent = 'كل 6 إلى 8 ساعات بعد وجبة خفيفة أو رضاعة.';
+        maxDailyElem.textContent = 'بحد أقصى 3 جرعات خلال 24 ساعة.';
+      }
+
+      doseEmptyState.classList.add('hidden');
+      doseResultBox.classList.remove('hidden');
+    });
+
+    /* ========================================================
+       5. متابعة العلامات الحيوية وسجل LocalStorage
+       ======================================================== */
+    const vitalsForm = document.getElementById('vitalsForm');
+    const vitalsListContainer = document.getElementById('vitalsListContainer');
+    const vitalsEmptyState = document.getElementById('vitalsEmptyState');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    function getStoredVitals() {
+      try {
+        return JSON.parse(localStorage.getItem('user_vitals_records')) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveStoredVitals(data) {
+      localStorage.setItem('user_vitals_records', JSON.stringify(data));
+      renderVitalsList();
+    }
+
+    function classifyBP(sys, dia) {
+      if (sys > 180 || dia > 120) {
+        return { status: 'أزمة ارتفاع ضغط (طوارئ)', color: 'bg-red-500 text-white' };
+      } else if (sys >= 140 || dia >= 90) {
+        return { status: 'ارتفاع مرحلة 2', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' };
+      } else if ((sys >= 130 && sys <= 139) || (dia >= 80 && dia <= 89)) {
+        return { status: 'ارتفاع مرحلة 1', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' };
+      } else if (sys >= 120 && sys <= 129 && dia < 80) {
+        return { status: 'مرتفع قليلاً', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300' };
+      } else if (sys >= 90 && dia >= 60) {
+        return { status: 'طبيعي ومثالي', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' };
+      } else {
+        return { status: 'ضغط منخفض', color: 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' };
+      }
+    }
+
+    function renderVitalsList() {
+      const records = getStoredVitals();
+      vitalsListContainer.innerHTML = '';
+
+      if (records.length === 0) {
+        vitalsEmptyState.classList.remove('hidden');
+        clearAllBtn.classList.add('hidden');
+        return;
+      }
+
+      vitalsEmptyState.classList.add('hidden');
+      clearAllBtn.classList.remove('hidden');
+
+      records.forEach((record, index) => {
+        const bpClass = classifyBP(record.sys, record.dia);
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-700 transition flex items-center justify-between";
+
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-black tracking-tight">${record.sys} / ${record.dia} <span class="text-xs font-normal text-slate-400">mmHg</span></span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold ${bpClass.color}">${bpClass.status}</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+              <span><i class="fa-solid fa-heart text-rose-500"></i> ${record.pulse} نبضة/د</span>
+              <span><i class="fa-regular fa-clock"></i> ${record.date}</span>
+              ${record.note ? `<span class="italic text-slate-400 font-medium">"${record.note}"</span>` : ''}
+            </div>
+          </div>
+          <button onclick="deleteVitalRecord(${index})" class="p-2 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition" title="حذف القراءة">
+            <i class="fa-solid fa-trash text-sm"></i>
+          </button>
+        `;
+
+        vitalsListContainer.appendChild(card);
+      });
+    }
+
+    vitalsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const sys = parseInt(document.getElementById('sysInput').value);
+      const dia = parseInt(document.getElementById('diaInput').value);
+      const pulse = parseInt(document.getElementById('pulseInput').value);
+      const note = document.getElementById('vitalsNote').value.trim();
+
+      const newRecord = {
+        sys,
+        dia,
+        pulse,
+        note,
+        date: new Date().toLocaleDateString('ar-EG', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      };
+
+      const records = getStoredVitals();
+      records.unshift(newRecord); // إضافة الأحدث في البداية
+      saveStoredVitals(records);
+
+      vitalsForm.reset();
+    });
+
+    window.deleteVitalRecord = function(index) {
+      const records = getStoredVitals();
+      records.splice(index, 1);
+      saveStoredVitals(records);
+    };
+
+    window.clearAllVitals = function() {
+      if (confirm('هل أنت متأكد من رغبتك في حذف جميع القراءات السابقة؟')) {
+        saveStoredVitals([]);
+      }
+    };
+
+    // تشغيل العرض الأولي للسجلات عند تحميل الصفحة
+    renderVitalsList();
+  </script>
+</body>
+</html>
